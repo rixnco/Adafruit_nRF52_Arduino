@@ -53,8 +53,8 @@ static void loop_task(void* arg)
 #endif
 
 #if CFG_DEBUG
-  // If Serial is not begin(), call it to avoid hard fault
-  if(!Serial) Serial.begin(115200);
+  // // If Serial is not begin(), call it to avoid hard fault
+  // if(!Serial) Serial.begin(115200);
 #endif
 
   setup();

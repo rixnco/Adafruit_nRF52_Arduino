@@ -173,7 +173,7 @@ void BLEGatt::_eventHandler(ble_evt_t* evt)
       }
 
       // invoke characteristic handler if matched
-      if ( (req_handle != BLE_GATT_HANDLE_INVALID) && (chr->valueHandle() == req_handle) )
+      if ( (req_handle != BLE_GATT_HANDLE_INVALID) && (chr->_acceptHandle(req_handle)) )
       {
         chr->_eventHandler(evt);
       }
