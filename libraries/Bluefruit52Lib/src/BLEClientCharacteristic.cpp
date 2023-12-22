@@ -196,7 +196,6 @@ uint16_t BLEClientCharacteristic::_read(uint16_t handle, void* buffer, uint16_t 
 uint16_t BLEClientCharacteristic::read(void* buffer, uint16_t bufsize)
 {
   VERIFY( _chr.char_props.read, 0 );
-  Serial.printf("reading chr - handle: %d\n", _chr.handle_value);
   return _read(_chr.handle_value, buffer, bufsize);
 }
 
