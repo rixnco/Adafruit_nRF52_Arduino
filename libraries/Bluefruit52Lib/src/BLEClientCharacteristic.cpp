@@ -372,20 +372,19 @@ bool BLEClientCharacteristic::writeCCCD(uint16_t value)
 
   ble_gattc_write_params_t param =
   {
-      .write_op = BLE_GATT_OP_WRITE_CMD,
-      .flags    = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE,
+      .write_op = BLE_GATT_OP_WRITE_REQ /*BLE_GATT_OP_WRITE_CMD*/,
+      .flags    = 0,
       .handle   = _cccd_handle,
       .offset   = 0,
       .len      = 2,
       .p_value  = (uint8_t*) &value
   };
 
-  // TODO only Write without response consume a TX buffer
-  BLEConnection* conn = Bluefruit.Connection(conn_handle);
-  VERIFY( conn && conn->getWriteCmdPacket() );
-
+  _adamsg.prepare( (void*) &value, 2);
   VERIFY_STATUS( sd_ble_gattc_write(conn_handle, &param), false );
-
+  // len is always 0 in BLE_GATTC_EVT_WRITE_RSP for BLE_GATT_OP_WRITE_REQ
+  uint32_t count = (_adamsg.waitUntilComplete(BLE_GENERIC_TIMEOUT) < 0 ? 0 : 2);
+  (void)count;
   return true;
 }
 

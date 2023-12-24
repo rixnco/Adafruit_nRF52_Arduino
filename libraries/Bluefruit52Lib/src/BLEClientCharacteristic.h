@@ -118,7 +118,6 @@ class BLEClientCharacteristic
   private:
     ble_gattc_char_t  _chr;
     uint16_t          _cccd_handle;
-uint16_t          _report_ref_handle;
 
     BLEClientService* _service;
     AdaMsg             _adamsg;
