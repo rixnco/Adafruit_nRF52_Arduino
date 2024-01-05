@@ -115,14 +115,17 @@ void resumeLoop(void)
   }
 }
 
-extern "C"
-{
 
-// nanolib printf() retarget
-// Logger 0: Serial (CDC), 1 Serial1 (UART), 2 Segger RTT
-int _write (int fd, const void *buf, size_t count)
+extern "C" int dbg_printf(const char* format,...)
 {
-  (void) fd;
+  char buf[256];
+  int count;
+
+  va_list ap;
+  va_start(ap, format);
+
+  count = vsnprintf(buf, 256, format, ap);
+  va_end(ap);
 
   size_t ret = 0;
 
@@ -146,5 +149,36 @@ int _write (int fd, const void *buf, size_t count)
   return (int) ret;
 }
 
-}
+// extern "C"
+// {
+
+// // nanolib printf() retarget
+// // Logger 0: Serial (CDC), 1 Serial1 (UART), 2 Segger RTT
+// int _write (int fd, const void *buf, size_t count)
+// {
+//   (void) fd;
+
+//   size_t ret = 0;
+
+// #if CFG_LOGGER == 2 || CFG_SYSVIEW
+//   SEGGER_RTT_Write(0, buf, count);
+//   ret = count;
+
+// #elif CFG_LOGGER == 1
+//   if ( Serial1 )
+//   {
+//     ret = Serial1.write((const uint8_t *) buf, count);
+//   }
+
+// #else
+//   if ( Serial )
+//   {
+//     ret = Serial.write((const uint8_t *) buf, count);
+//   }
+// #endif
+
+//   return (int) ret;
+// }
+
+// }
 
