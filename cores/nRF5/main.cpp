@@ -49,10 +49,12 @@ static void loop_task(void* arg)
   (void) arg;
 
 #ifdef USE_TINYUSB
-  TinyUSB_Device_Init(0);
+  // EBO: Leave initialization to user's code.
+  // TinyUSB_Device_Init(0);
 #endif
 
 #if CFG_DEBUG
+  // EBO: Leave initialization to user's code.
   // // If Serial is not begin(), call it to avoid hard fault
   // if(!Serial) Serial.begin(115200);
 #endif
