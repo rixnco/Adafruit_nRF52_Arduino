@@ -144,13 +144,11 @@ uint8_t BLEDiscovery::discoverCharacteristic(uint16_t conn_handle, BLEClientChar
         if ( chr[i]->uuid == disc_chr->chars[d].uuid )
         {
           LOG_LV2("DISC", "[CHR] Found 0x%04X, handle = %d\n-----------------", disc_chr->chars[d].uuid.uuid,  disc_chr->chars[d].handle_value);
-
           // characteristic assign overload
           chr[i]->_assign(&disc_chr->chars[d]);
-
-          // only discover CCCD descriptor
-          if (disc_chr->chars[d].char_props.notify || disc_chr->chars[d].char_props.indicate )
-          {
+          // // only discover CCCD descriptor
+          // if (disc_chr->chars[d].char_props.notify || disc_chr->chars[d].char_props.indicate )
+          // {
             ble_gattc_handle_range_t range = {
               .start_handle = (uint16_t) (disc_chr->chars[d].handle_value + 1),
               .end_handle   = _hdl_range.end_handle
@@ -161,7 +159,7 @@ uint8_t BLEDiscovery::discoverCharacteristic(uint16_t conn_handle, BLEClientChar
               // skip if reaching end of range (last char has no descriptor)p
               chr[i]->_discoverDescriptor(conn_handle, range);
             }
-          }
+          // }
 
           found++;
 

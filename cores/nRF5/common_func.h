@@ -151,10 +151,12 @@
 //--------------------------------------------------------------------+
 const char* dbg_err_str(int32_t err_id); // TODO move to other place
 
+int dbg_printf(const char* format,...);
+
 #if __cplusplus
-  #define PRINTF    ::printf
+  #define PRINTF    ::dbg_printf
 #else
-  #define PRINTF    printf
+  #define PRINTF    dbg_printf
 #endif
 
 

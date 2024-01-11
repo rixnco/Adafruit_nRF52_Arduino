@@ -93,6 +93,8 @@ void usb_softdevice_post_enable(void)
 
 #endif
 
+static uint32_t LED_BLE = LED_BLUE;
+
 AdafruitBluefruit Bluefruit;
 
 /*------------------------------------------------------------------*/
@@ -112,7 +114,7 @@ void adafruit_soc_task(void* arg);
 static void bluefruit_blinky_cb( TimerHandle_t xTimer )
 {
   (void) xTimer;
-  digitalToggle(LED_BLUE);
+  digitalToggle(LED_BLE);
 }
 
 static void nrf_error_cb(uint32_t id, uint32_t pc, uint32_t info)
@@ -561,6 +563,12 @@ int8_t AdafruitBluefruit::getTxPower(void)
   return _tx_power;
 }
 
+void AdafruitBluefruit::setConnLed(uint32_t led_pin)
+{
+  LED_BLE=led_pin;
+}
+
+
 void AdafruitBluefruit::autoConnLed(bool enabled)
 {
   _led_conn = enabled;
@@ -953,7 +961,7 @@ void AdafruitBluefruit::_setConnLed (bool on_off)
 {
   if (_led_conn)
   {
-    digitalWrite(LED_BLUE, on_off ? LED_STATE_ON : (1-LED_STATE_ON) );
+    digitalWrite(LED_BLE, on_off ? LED_STATE_ON : (1-LED_STATE_ON) );
   }
 }
 

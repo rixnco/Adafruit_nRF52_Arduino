@@ -157,6 +157,7 @@ class AdafruitBluefruit
     bool     setAppearance      (uint16_t appear);
     uint16_t getAppearance      (void);
 
+    void     setConnLed         (uint32_t led_pin);
     void     autoConnLed        (bool enabled);
     void     setConnLedInterval (uint32_t ms);
 

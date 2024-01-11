@@ -33,7 +33,7 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 /**************************************************************************/
-
+#include "Arduino.h"
 #include "bluefruit.h"
 
 void BLEClientCharacteristic::_init(void)
@@ -147,39 +147,56 @@ bool BLEClientCharacteristic::_discoverDescriptor(uint16_t conn_handle, ble_gatt
 
   uint16_t count = Bluefruit.Discovery._discoverDescriptor(conn_handle, (ble_gattc_evt_desc_disc_rsp_t*) &disc_rsp, sizeof(disc_rsp), hdl_range);
 
-  // only care CCCD for now
   for(uint16_t i=0; i<count; i++)
   {
-    if ( disc_rsp.descs[i].uuid.type == BLE_UUID_TYPE_BLE &&
-         disc_rsp.descs[i].uuid.uuid == BLE_UUID_DESCRIPTOR_CLIENT_CHAR_CONFIG )
-    {
-      LOG_LV2("DISC", "Found CCCD: handle = %d", disc_rsp.descs[i].handle);
-      _cccd_handle = disc_rsp.descs[i].handle;
-
-      break;
-    }
+      _processDescriptor(&disc_rsp.descs[i]);
   }
 
   return true;
 }
 
+bool BLEClientCharacteristic::_acceptHandle(uint16_t handle)
+{
+  if(handle == BLE_GATT_HANDLE_INVALID) return false;
+  if(handle == valueHandle()) return true;
+  if(handle == _cccd_handle) return true;
+  return false;
+}
+
+void BLEClientCharacteristic::_processDescriptor(ble_gattc_desc_t* pDesc)
+{
+  if ((_chr.char_props.notify || _chr.char_props.indicate ) &&
+      (_cccd_handle==BLE_GATT_HANDLE_INVALID) && 
+      (pDesc->uuid.type == BLE_UUID_TYPE_BLE) &&
+      (pDesc->uuid.uuid == BLE_UUID_DESCRIPTOR_CLIENT_CHAR_CONFIG))
+  {
+      LOG_LV2("DISC", "Found CCCD: handle = %d", pDesc->handle);
+      _cccd_handle = pDesc->handle;
+  }
+}
+
+
 /*------------------------------------------------------------------*/
 /* READ
  *------------------------------------------------------------------*/
-uint16_t BLEClientCharacteristic::read(void* buffer, uint16_t bufsize)
+uint16_t BLEClientCharacteristic::_read(uint16_t handle, void* buffer, uint16_t bufsize)
 {
-  VERIFY( _chr.char_props.read, 0 );
-
   BLEConnection* conn = Bluefruit.Connection( _service->connHandle() );
   VERIFY(conn, 0);
 
   uint16_t const max_payload = conn->getMtu() - 3;
 
   _adamsg.prepare(buffer, bufsize);
-  VERIFY_STATUS( sd_ble_gattc_read(_service->connHandle(), _chr.handle_value, 0), 0);
+  VERIFY_STATUS( sd_ble_gattc_read(_service->connHandle(), handle, 0), 0);
   int32_t rxlen = _adamsg.waitUntilComplete( (bufsize/(max_payload-2) + 1) * BLE_GENERIC_TIMEOUT );
 
   return (rxlen < 0) ? 0 : rxlen;
+}
+
+uint16_t BLEClientCharacteristic::read(void* buffer, uint16_t bufsize)
+{
+  VERIFY( _chr.char_props.read, 0 );
+  return _read(_chr.handle_value, buffer, bufsize);
 }
 
 uint8_t BLEClientCharacteristic::read8 (void)
@@ -355,21 +372,25 @@ bool BLEClientCharacteristic::writeCCCD(uint16_t value)
 
   ble_gattc_write_params_t param =
   {
-      .write_op = BLE_GATT_OP_WRITE_CMD,
-      .flags    = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE,
+      .write_op = BLE_GATT_OP_WRITE_REQ /*BLE_GATT_OP_WRITE_CMD*/,
+      .flags    = 0,
       .handle   = _cccd_handle,
       .offset   = 0,
       .len      = 2,
       .p_value  = (uint8_t*) &value
   };
 
-  // TODO only Write without response consume a TX buffer
-  BLEConnection* conn = Bluefruit.Connection(conn_handle);
-  VERIFY( conn && conn->getWriteCmdPacket() );
-
+  _adamsg.prepare( (void*) &value, 2);
   VERIFY_STATUS( sd_ble_gattc_write(conn_handle, &param), false );
-
+  // len is always 0 in BLE_GATTC_EVT_WRITE_RSP for BLE_GATT_OP_WRITE_REQ
+  uint32_t count = (_adamsg.waitUntilComplete(BLE_GENERIC_TIMEOUT) < 0 ? 0 : 2);
+  (void)count;
   return true;
+}
+
+bool BLEClientCharacteristic::canNotify(void)
+{
+  return _chr.char_props.notify;
 }
 
 bool BLEClientCharacteristic::enableNotify(void)
@@ -382,6 +403,11 @@ bool BLEClientCharacteristic::disableNotify(void)
 {
   VERIFY( _chr.char_props.notify );
   return writeCCCD(0x0000);
+}
+
+bool BLEClientCharacteristic::canIndicate(void)
+{
+  return _chr.char_props.indicate;
 }
 
 bool BLEClientCharacteristic::enableIndicate  (void)

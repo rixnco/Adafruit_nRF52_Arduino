@@ -93,11 +93,14 @@ class BLEClientCharacteristic
     /*------------- Notify -------------*/
     bool writeCCCD       (uint16_t value);
 
+    bool canNotify       (void);
     bool enableNotify    (void);
     bool disableNotify   (void);
 
+    bool canIndicate     (void);
     bool enableIndicate  (void);
     bool disableIndicate (void);
+
 
     /*------------- Callbacks -------------*/
     void setNotifyCallback(notify_cb_t fp, bool useAdaCallback = true);
@@ -105,7 +108,12 @@ class BLEClientCharacteristic
 
     /*------------- Internal usage -------------*/
     void _assign(ble_gattc_char_t* gattc_chr);
-    bool _discoverDescriptor(uint16_t conn_handle, ble_gattc_handle_range_t hdl_range);
+    virtual bool _discoverDescriptor(uint16_t conn_handle, ble_gattc_handle_range_t hdl_range);
+    virtual bool _acceptHandle(uint16_t handle);
+
+  protected:
+    virtual void _processDescriptor(ble_gattc_desc_t* pDesc);
+    uint16_t _read(uint16_t handle, void* buffer, uint16_t bufsize);
 
   private:
     ble_gattc_char_t  _chr;
