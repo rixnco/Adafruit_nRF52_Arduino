@@ -55,7 +55,7 @@ class BLEUart : public BLEService, public Stream
     typedef void (*notify_callback_t)(uint16_t conn_hdl, bool enabled);
     typedef void (*rx_overflow_callback_t) (uint16_t conn_hdl, uint16_t leftover);
 
-    BLEUart(uint16_t fifo_depth = BLE_UART_DEFAULT_FIFO_DEPTH);
+    BLEUart(BLEUuid service_uuid = BLEUART_UUID_SERVICE, BLEUuid rx_char = BLEUART_UUID_CHR_RXD, BLEUuid tx_char = BLEUART_UUID_CHR_TXD, uint16_t fifo_depth = BLE_UART_DEFAULT_FIFO_DEPTH);
     virtual ~BLEUart();
 
     virtual err_t begin(void);

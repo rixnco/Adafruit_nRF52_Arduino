@@ -50,7 +50,7 @@ class BLEClientUart : public BLEClientService, public Stream
     // Callback Signatures
     typedef void (*rx_callback_t) (BLEClientUart& svc);
 
-    BLEClientUart(uint16_t fifo_depth = BLE_UART_DEFAULT_FIFO_DEPTH);
+    BLEClientUart(BLEUuid service_uuid = BLEUART_UUID_SERVICE, BLEUuid rx_char = BLEUART_UUID_CHR_RXD, BLEUuid tx_char = BLEUART_UUID_CHR_TXD, uint16_t fifo_depth = BLE_UART_DEFAULT_FIFO_DEPTH);
 
     virtual bool  begin(void);
     virtual bool  discover(uint16_t conn_handle);
