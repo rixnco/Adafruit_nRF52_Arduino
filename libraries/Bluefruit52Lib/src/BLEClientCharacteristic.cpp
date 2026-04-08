@@ -356,7 +356,7 @@ bool BLEClientCharacteristic::writeCCCD(uint16_t value)
   ble_gattc_write_params_t param =
   {
       .write_op = BLE_GATT_OP_WRITE_REQ,
-      .flags    = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE,
+      .flags    = 0,
       .handle   = _cccd_handle,
       .offset   = 0,
       .len      = 2,
@@ -375,8 +375,8 @@ bool BLEClientCharacteristic::writeCCCD(uint16_t value)
   VERIFY_STATUS(sd_ble_gattc_write(_service->connHandle(), &param), 0);
 
   // len is always 0 in BLE_GATTC_EVT_WRITE_RSP for BLE_GATT_OP_WRITE_REQ
-  return (_adamsg.waitUntilComplete(BLE_GENERIC_TIMEOUT) < 0 ? false : true);
-
+  _adamsg.waitUntilComplete(BLE_GENERIC_TIMEOUT);
+  return true;
 }
 
 bool BLEClientCharacteristic::enableNotify(void)
