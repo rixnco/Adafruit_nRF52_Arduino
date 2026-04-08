@@ -355,7 +355,7 @@ bool BLEClientCharacteristic::writeCCCD(uint16_t value)
 
   ble_gattc_write_params_t param =
   {
-      .write_op = BLE_GATT_OP_WRITE_CMD,
+      .write_op = BLE_GATT_OP_WRITE_REQ,
       .flags    = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE,
       .handle   = _cccd_handle,
       .offset   = 0,
@@ -363,13 +363,20 @@ bool BLEClientCharacteristic::writeCCCD(uint16_t value)
       .p_value  = (uint8_t*) &value
   };
 
-  // TODO only Write without response consume a TX buffer
-  BLEConnection* conn = Bluefruit.Connection(conn_handle);
-  VERIFY( conn && conn->getWriteCmdPacket() );
+  // // TODO only Write without response consume a TX buffer
+  // BLEConnection* conn = Bluefruit.Connection(conn_handle);
+  // VERIFY( conn && conn->getWriteCmdPacket() );
 
-  VERIFY_STATUS( sd_ble_gattc_write(conn_handle, &param), false );
+  // VERIFY_STATUS( sd_ble_gattc_write(conn_handle, &param), false );
+  // return true;
 
-  return true;
+  // Use Write with response to ensure the write is successful and the CCCD is updated on the server side. 
+  _adamsg.prepare( (void*) &value, 2);
+  VERIFY_STATUS(sd_ble_gattc_write(_service->connHandle(), &param), 0);
+
+  // len is always 0 in BLE_GATTC_EVT_WRITE_RSP for BLE_GATT_OP_WRITE_REQ
+  return (_adamsg.waitUntilComplete(BLE_GENERIC_TIMEOUT) < 0 ? false : true);
+
 }
 
 bool BLEClientCharacteristic::enableNotify(void)
